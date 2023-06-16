@@ -40,4 +40,4 @@ replay_*.log
 *.jfr
 
 # junk
-resources/assets
+/src/main/resources/assets/

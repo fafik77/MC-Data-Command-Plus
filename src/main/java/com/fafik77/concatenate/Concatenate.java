@@ -20,8 +20,6 @@ public class Concatenate implements ModInitializer {
         // However, some things (like resources) may still be uninitialized.
         // Proceed with mild caution.
 
-        LOGGER.info("Registering my mod");
         ModRegistries.registerModStuffs();
-        LOGGER.info("Finished Registering my mod");
     }
 }

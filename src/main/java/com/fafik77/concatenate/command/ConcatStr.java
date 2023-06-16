@@ -218,7 +218,13 @@ public class ConcatStr {
             nbtToStr.concat(nbtElement);
         }
 
-        nbtCompound.putString(nbtPath.toString(), nbtToStr.getResult());
+        //nbtCompound.putString(nbtPath.toString(), nbtToStr.getResult());
+        List<NbtElement> elementsLocal = new ArrayList<NbtElement>();
+        elementsLocal.add(NbtString.of(nbtToStr.getResult()));
+        int i = modifier.modify(context, nbtCompound, nbtPath, elementsLocal);
+        if (i == 0) {
+            throw MERGE_FAILED_EXCEPTION.create();
+        }
 
         dataCommandObject.setNbt(nbtCompound);
         context.getSource().sendFeedback(() -> dataCommandObject.feedbackModify(), false);
