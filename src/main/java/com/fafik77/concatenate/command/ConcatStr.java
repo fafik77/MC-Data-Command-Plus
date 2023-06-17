@@ -210,21 +210,25 @@ public class ConcatStr {
         NbtElement nbtElement;
 
         //append 2 strings (and only those two)
-        if( elements.size() == 1 && elements.get(0).getType() == NbtElement.STRING_TYPE )
-            nbtToStr.concat( nbtCompound.getString(nbtPath.toString()) );
+        if( elements.size() == 1 && elements.get(0).getType() == NbtElement.STRING_TYPE ) {
+            //try to add previous string
+            try {
+                List<NbtElement> listFirstEl = nbtPath.get(nbtCompound);
+                NbtElement startWithThis;
+                if (listFirstEl.iterator().hasNext() && (startWithThis = (listFirstEl.iterator().next())).getType() == NbtElement.STRING_TYPE) {
+                    nbtToStr.concat(startWithThis);
+                }
+            } catch (CommandSyntaxException err) {}
+        }
         //concat all elements to string
         while(iteratorElem.hasNext()) {
             nbtElement = (NbtElement) iteratorElem.next();
             nbtToStr.concat(nbtElement);
         }
 
-        //nbtCompound.putString(nbtPath.toString(), nbtToStr.getResult());
         List<NbtElement> elementsLocal = new ArrayList<NbtElement>();
         elementsLocal.add(NbtString.of(nbtToStr.getResult()));
         int i = modifier.modify(context, nbtCompound, nbtPath, elementsLocal);
-        if (i == 0) {
-            throw MERGE_FAILED_EXCEPTION.create();
-        }
 
         dataCommandObject.setNbt(nbtCompound);
         context.getSource().sendFeedback(() -> dataCommandObject.feedbackModify(), false);
