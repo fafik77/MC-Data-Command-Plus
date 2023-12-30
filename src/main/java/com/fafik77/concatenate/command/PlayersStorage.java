@@ -11,7 +11,6 @@ import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.util.UUID;
 
 public class PlayersStorage {
 	@Nullable
@@ -27,10 +26,7 @@ public class PlayersStorage {
 			this.playerDataDir.mkdirs();
 		this.dataFixer = dataFixer;
 	}
-	/** returns file name for player "_pds" Player Data Storage */
-	public static String getPlayerFilePds(UUID playerUuid){
-		return getPlayerFilePds(playerUuid.toString());
-	}
+
 	/** returns file name for player "_pds" Player Data Storage */
 	public static String getPlayerFilePds(String playerUuid){
 		return playerUuid + "_pds";
