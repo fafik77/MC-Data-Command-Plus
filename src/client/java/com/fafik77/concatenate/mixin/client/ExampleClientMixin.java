@@ -1,3 +1,4 @@
+/*
 package com.fafik77.concatenate.mixin.client;
 
 import net.minecraft.client.MinecraftClient;
@@ -13,3 +14,5 @@ public class ExampleClientMixin {
 		// This code is injected into the start of MinecraftClient.run()V
 	}
 }
+
+ */

@@ -3,7 +3,7 @@
 	"id": "concatenate",
 	"version": "${version}",
 	"name": "Concatenate Strings mod",
-	"description": "Concatenates multiple strings into one with optional <separator>",
+	"description": "Data command Expansion. Concatenates multiple strings into one with optional <separator>",
 	"authors": [
 		"fafik77"
 	],
@@ -12,14 +12,13 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "MIT",
-	"icon": "assets/modid/concatenate.png",
+	"icon": "assets/concatenate/concatenate.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
 			"com.fafik77.concatenate.Concatenate"
 		],
 		"client": [
-			"com.fafik77.concatenate.ExampleModClient"
 		]
 	},
 	"mixins": [

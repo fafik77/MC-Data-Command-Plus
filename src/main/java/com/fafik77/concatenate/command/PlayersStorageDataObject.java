@@ -28,7 +28,8 @@ public class PlayersStorageDataObject implements DataCommandObject {
 	 */
 	private static final SimpleCommandExceptionType INVALID_ENTITY_EXCEPTION = new SimpleCommandExceptionType(Text.translatable("commands.data.playerstorage.invalid"));
 	/**
-	 * my type of data storage (2023-12-30  concept: 2023-12-11)
+	 * ToDo
+	 * change to use (my type of data storage 2023-12-11)
 	 */
 	private final PlayersStorageMgr storage;
 	private final Entity playerEntity;
@@ -38,8 +39,6 @@ public class PlayersStorageDataObject implements DataCommandObject {
 		this.playerEntity = playerEntity;
 	}
 
-	/** adds 'storageplayer' target, and source
-	 */
 	public static final Function<String, DataCommand.ObjectType> TYPE_FACTORY = (argumentName) -> {
 		return new DataCommand.ObjectType() {
 			public DataCommandObject getObject(CommandContext<ServerCommandSource> context) throws CommandSyntaxException {
@@ -53,10 +52,12 @@ public class PlayersStorageDataObject implements DataCommandObject {
 	};
 
 	/**
-	 * instead of using MinecraftServer.class to contain my type of data storage, use my static 'singletons'
+	 * modify MinecraftServer.class to contain (my type of data storage 2023-12-11)
 	 */
 	static PlayersStorageMgr of(CommandContext<ServerCommandSource> context) {
 		return singletons.playersStorage.playersStorageMgr;
+		/// https://www.youtube.com/watch?v=HQUkWjMWTik
+		//return ((ServerCommandSource) context.getSource()).getServer().getDataCommandStorage();
 	}
 
 	public void setNbt(NbtCompound nbt) throws CommandSyntaxException {
@@ -67,12 +68,8 @@ public class PlayersStorageDataObject implements DataCommandObject {
 		}
 	}
 
-	public NbtCompound getNbt() throws CommandSyntaxException {
-		if (this.playerEntity instanceof PlayerEntity) {
-			return this.storage.get(this.playerEntity.getUuid());
-		} else {
-			throw INVALID_ENTITY_EXCEPTION.create();
-		}
+	public NbtCompound getNbt() {
+		return this.storage.get(this.playerEntity.getUuid());
 	}
 
 	public Text feedbackModify() {
