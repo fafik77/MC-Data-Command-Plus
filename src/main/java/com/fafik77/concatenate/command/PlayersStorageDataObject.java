@@ -17,6 +17,7 @@ import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.DataCommand;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.function.Function;
@@ -53,10 +54,11 @@ public class PlayersStorageDataObject implements DataCommandObject {
 	/**
 	 * use my singletons instead of MinecraftServer.class to contain my type of data storage 2023-12-31, concept:2023-12-11
 	 */
-	static PlayersStorageMgr of(CommandContext<ServerCommandSource> context) {
+	static PlayersStorageMgr of( @Nullable CommandContext<ServerCommandSource> context) {
 		return singletons.playersStorage.playersStorageMgr;
 	}
 
+	/** can only work on player entity */
 	public void setNbt(NbtCompound nbt) throws CommandSyntaxException {
 		if (this.playerEntity instanceof PlayerEntity) {
 			this.storage.set(this.playerEntity.getUuid(), nbt);
@@ -64,9 +66,13 @@ public class PlayersStorageDataObject implements DataCommandObject {
 			throw INVALID_ENTITY_EXCEPTION.create();
 		}
 	}
-
-	public NbtCompound getNbt() {
-		return this.storage.get(this.playerEntity.getUuid());
+	/** can only work on player entity */
+	public NbtCompound getNbt() throws CommandSyntaxException {
+		if (this.playerEntity instanceof PlayerEntity) {
+			return this.storage.get(this.playerEntity.getUuid());
+		} else {
+			throw INVALID_ENTITY_EXCEPTION.create();
+		}
 	}
 
 	public Text feedbackModify() {
