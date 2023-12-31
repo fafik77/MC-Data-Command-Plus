@@ -5,6 +5,7 @@ import com.mojang.datafixers.DataFixer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtTagSizeTracker;
 import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -40,10 +41,10 @@ public class PlayersStorage {
 			nbtCompound_data.put("data", nbtCompound);
 
 			File file = File.createTempFile(PlayerFile + "-", ".dat", this.playerDataDir);
-			NbtIo.writeCompressed(nbtCompound_data, file);
+			NbtIo.writeCompressed(nbtCompound_data, file.toPath());
 			File file2 = new File(this.playerDataDir, PlayerFile + ".dat");
 			File file3 = new File(this.playerDataDir, PlayerFile + ".dat_old");
-			Util.backupAndReplace(file2, file, file3);
+			Util.backupAndReplace(file2.toPath(), file.toPath(), file3.toPath());
 
 		} catch (Exception exception) {
 			singletons.data_LOGGER.warn("Failed to save player_pds data for {}", player.getName().getString());
@@ -55,7 +56,7 @@ public class PlayersStorage {
 		try {
 			File file = new File(this.playerDataDir, PlayerFile + ".dat");
 			if (file.exists() && file.isFile()) {
-				nbtCompound = NbtIo.readCompressed(file);
+				nbtCompound = NbtIo.readCompressed(file.toPath(), NbtTagSizeTracker.ofUnlimitedBytes());
 			}
 		} catch (Exception exception) {
 			singletons.data_LOGGER.warn("Failed to load player_pds data for {}", player.getName().getString());
