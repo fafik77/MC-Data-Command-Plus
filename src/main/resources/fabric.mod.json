@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "data_command_plus",
 	"version": "${version}",
-	"name": "Expands Data Command",
+	"name": "DataCommandPlus",
 	"description": "Data command Expansion. Concatenates multiple strings into one with optional <separator>, store player data storage for each player.",
 	"authors": [
 		"fafik77"
@@ -30,7 +30,7 @@
 	],
 	"depends": {
 		"fabricloader": ">=0.14.20",
-		"minecraft": "~1.20.4",
+		"minecraft": "~1.20.3",
 		"java": ">=17",
 		"fabric-api": "*"
 	},
