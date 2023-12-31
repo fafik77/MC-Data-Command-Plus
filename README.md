@@ -8,7 +8,7 @@ This mod adds more functionality to /data command.
 Get it on https://legacy.curseforge.com/minecraft/mc-mods/data-concat-string
 </br>
 
-Syntax of the command fits right into Vanilla syntax. see Commands/data on Minecraft Wiki
+Syntax of the command fits right into Vanilla syntax. see https://minecraft.wiki/w/Commands/data on Minecraft Wiki
 
 /data modify (block / entity / storage / <b>storageplayer</b>) path (set / insert / ...) <b><u>concat</u></b> (block / entity / storage) path [separator]
 
