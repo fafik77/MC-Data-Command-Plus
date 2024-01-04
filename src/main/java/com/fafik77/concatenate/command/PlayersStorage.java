@@ -6,7 +6,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.NbtTagSizeTracker;
-import net.minecraft.util.Util;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
@@ -40,12 +39,8 @@ public class PlayersStorage {
 			NbtCompound nbtCompound_data = new NbtCompound();
 			nbtCompound_data.put("data", nbtCompound);
 
-			File file = File.createTempFile(PlayerFile + "-", ".dat", this.playerDataDir);
-			NbtIo.writeCompressed(nbtCompound_data, file.toPath());
 			File file2 = new File(this.playerDataDir, PlayerFile + ".dat");
-			File file3 = new File(this.playerDataDir, PlayerFile + ".dat_old");
-			Util.backupAndReplace(file2.toPath(), file.toPath(), file3.toPath());
-
+			NbtIo.writeCompressed(nbtCompound_data, file2.toPath());
 		} catch (Exception exception) {
 			singletons.data_LOGGER.warn("Failed to save player_pds data for {}", player.getName().getString());
 		}
