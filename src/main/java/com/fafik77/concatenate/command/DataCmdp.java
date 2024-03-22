@@ -29,6 +29,7 @@ import java.util.function.BiConsumer;
 
 
 /** Data Command Plus includes:
+ * Loot Inventory on 2024-03-17,
  * PlayersStorageDataObject on 2023-12-30,
  * Concat on 2023-06-14,
  * */
