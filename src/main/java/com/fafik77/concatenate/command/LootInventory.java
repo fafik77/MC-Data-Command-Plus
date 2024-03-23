@@ -1,5 +1,6 @@
 package com.fafik77.concatenate.command;
 
+import com.fafik77.concatenate.mixin.AbstractHorseEntityMixin;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -9,25 +10,31 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.exceptions.Dynamic3CommandExceptionType;
 import com.mojang.brigadier.exceptions.DynamicCommandExceptionType;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.*;
+import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.EntityArgumentType;
+import net.minecraft.command.argument.ItemSlotArgumentType;
+import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.passive.AbstractHorseEntity;
+import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.VehicleInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.StackReference;
 import net.minecraft.item.ItemStack;
-import net.minecraft.loot.context.LootContextParameterSet;
-import net.minecraft.loot.context.LootContextParameters;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.command.ServerCommandSource;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -54,7 +61,7 @@ public class LootInventory {
 	public LootInventory(){
 	}
 
-	public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment yy) {
+	public static void register(CommandDispatcher<ServerCommandSource> dispatcher, CommandRegistryAccess commandRegistryAccess, CommandManager.RegistrationEnvironment ignored) {
 		dispatcher.register((LiteralArgumentBuilder)addTargetArguments((LiteralArgumentBuilder) CommandManager.literal("loot").requires((source) -> {
 			return source.hasPermissionLevel(2);
 		}), (builder, constructor) -> {
@@ -90,8 +97,23 @@ public class LootInventory {
 			return (Inventory)blockEntity;
 		}
 	}
+	/** the modified version of getBlockInventory that uses HopperEntity lookup of finding a chest*/
+	private static Inventory getOutputInventory(ServerCommandSource source, BlockPos pos) throws CommandSyntaxException {
+		BlockEntity blockEntity = source.getWorld().getBlockEntity(pos);
+		BlockState blockState = source.getWorld().getBlockState(pos);
+		Block block = blockState.getBlock();
+		if (!(blockEntity instanceof Inventory)) {
+			throw NOT_A_CONTAINER_TARGET_EXCEPTION.create(pos.getX(), pos.getY(), pos.getZ());
+		} else {
+			Inventory inventory= (Inventory)blockEntity;
+			if (inventory instanceof ChestBlockEntity && block instanceof ChestBlock) {
+				inventory = ChestBlock.getInventory((ChestBlock)block, blockState, source.getWorld(), pos, true);
+			}
+			return inventory;
+		}
+	}
 	private static int executeInsert(ServerCommandSource source, BlockPos targetPos, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
-		Inventory inventory = getBlockInventory(source, targetPos);
+		Inventory inventory = getOutputInventory(source, targetPos);
 		List<ItemStack> list = Lists.newArrayListWithCapacity(stacks.size());
 		Iterator var6 = stacks.iterator();
 
@@ -133,12 +155,12 @@ public class LootInventory {
 	}
 
 	private static int executeBlock(ServerCommandSource source, BlockPos targetPos, int slot, int stackCount, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
-		Inventory inventory = getBlockInventory(source, targetPos);
+		Inventory inventory = getOutputInventory(source, targetPos);
 		int i = inventory.size();
 		if (slot >= 0 && slot < i) {
 			List<ItemStack> list = Lists.newArrayListWithCapacity(stacks.size());
 
-			for(int j = 0; j < stackCount; ++j) {
+			for(int j = 0; j < Math.min(stackCount, i); ++j) {
 				int k = slot + j;
 				ItemStack itemStack = j < stacks.size() ? (ItemStack)stacks.get(j) : ItemStack.EMPTY;
 				if (inventory.isValid(k, itemStack)) {
@@ -191,10 +213,8 @@ public class LootInventory {
 
 	private static int executeReplace(Collection<? extends Entity> targets, int slot, int stackCount, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
 		List<ItemStack> list = Lists.newArrayListWithCapacity(stacks.size());
-		Iterator var6 = targets.iterator();
 
-		while(var6.hasNext()) {
-			Entity entity = (Entity)var6.next();
+		for (Entity entity : targets) {
 			if (entity instanceof ServerPlayerEntity serverPlayerEntity) {
 				replace(entity, stacks, slot, stackCount, list);
 				serverPlayerEntity.currentScreenHandler.sendContentUpdates();
@@ -236,41 +256,50 @@ public class LootInventory {
 
 	private static int executeLootInventory(CommandContext<ServerCommandSource> context, Entity target, Target constructor) throws CommandSyntaxException {
 		ServerCommandSource serverCommandSource = (ServerCommandSource)context.getSource();
-		//LootContextParameterSet.Builder builder = new LootContextParameterSet.Builder(serverCommandSource.getWorld());
-		//builder.add(LootContextParameters.THIS_ENTITY, target);
 		List<ItemStack> list = null;
-		if(target instanceof VehicleInventory){
+		if(target instanceof ItemEntity){   //item
+			DefaultedList<ItemStack> items = DefaultedList.of();
+			list= items;
+			items.add( ((ItemEntity) target).getStack().copy() );
+		}
+		else if(target instanceof VehicleInventory){    //cart, boat with chest
 			VehicleInventory MooovingInv= (VehicleInventory)target;
-			DefaultedList<ItemStack> items = DefaultedList.ofSize(MooovingInv.size());
+			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			MooovingInv.getInventory().forEach(itemStack -> items.add(itemStack.copy()));
 
 		}
-		else if(target instanceof PlayerEntity) {
-			DefaultedList<ItemStack> items = DefaultedList.ofSize(((PlayerEntity) target).getInventory().main.size());
+		else if(target instanceof PlayerEntity) {   //player
+			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
+			/* ups by mistake I discovered Shadow Item technology (that's why we use for each copy)*/
 			((PlayerEntity) target).getInventory().main.forEach(itemStack -> items.add(itemStack.copy()));
 			((PlayerEntity) target).getInventory().armor.forEach(itemStack -> items.add(itemStack.copy()));
 			((PlayerEntity) target).getInventory().offHand.forEach(itemStack -> items.add(itemStack.copy()));
 		}
-		else if(target instanceof LivingEntity) {
-			DefaultedList<ItemStack> items = DefaultedList.ofSize(27);
+		else if(target instanceof MerchantEntity) { //villagers
+			DefaultedList<ItemStack> items = DefaultedList.of();
+			list= items;
+			((MerchantEntity) target).getInventory().getHeldStacks().forEach(itemStack -> items.add(itemStack.copy()));
+			target.getItemsEquipped().forEach(itemStack -> items.add(itemStack.copy()) );
+		}
+		else if(target instanceof AbstractHorseEntity) {    //horse, donkey, llama
+			DefaultedList<ItemStack> items = DefaultedList.of();
+			list= items;
+			((AbstractHorseEntityMixin) target).getItems().getHeldStacks().forEach(itemStack -> items.add(itemStack.copy()));
+		}
+
+
+		else if(target instanceof LivingEntity) {   //any other living entity
+			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			target.getItemsEquipped().forEach(itemStack -> items.add(itemStack.copy()) );
 		}
-		else {
-			throw NO_INVENTORY_EXCEPTION.create(target.getName());
-		}
+
 		if( list==null || list.isEmpty()){
 			throw NO_INVENTORY_EXCEPTION.create(target.getName());
 		}
 
-//		ServerWorld serverWorld = serverCommandSource.getWorld();
-//		BlockState blockState = serverWorld.getBlockState(pos);
-//		BlockEntity blockEntity = serverWorld.getBlockEntity(pos);
-//		LootContextParameterSet.Builder builder = (new LootContextParameterSet.Builder(serverWorld)).add(LootContextParameters.ORIGIN, Vec3d.ofCenter(pos)).add(LootContextParameters.BLOCK_STATE, blockState).addOptional(LootContextParameters.BLOCK_ENTITY, blockEntity).addOptional(LootContextParameters.THIS_ENTITY, serverCommandSource.getEntity()).add(LootContextParameters.TOOL, stack);
-//		LootContextParameterSet lootContextParameterSet = builder.build(LootContextTypes.ENTITY);
-		//List<ItemStack> list = blockState.getDroppedStacks(builder);
 		return constructor.accept(context, list, (stacks) -> {
 			sendDroppedFeedback(serverCommandSource, stacks);
 		});
