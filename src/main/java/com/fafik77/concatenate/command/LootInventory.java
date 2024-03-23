@@ -115,10 +115,8 @@ public class LootInventory {
 	private static int executeInsert(ServerCommandSource source, BlockPos targetPos, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
 		Inventory inventory = getOutputInventory(source, targetPos);
 		List<ItemStack> list = Lists.newArrayListWithCapacity(stacks.size());
-		Iterator var6 = stacks.iterator();
 
-		while(var6.hasNext()) {
-			ItemStack itemStack = (ItemStack)var6.next();
+		for (ItemStack itemStack : stacks) {
 			if (insert(inventory, itemStack.copy())) {
 				inventory.markDirty();
 				list.add(itemStack);
@@ -182,14 +180,10 @@ public class LootInventory {
 
 	private static int executeGive(Collection<ServerPlayerEntity> players, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
 		List<ItemStack> list = Lists.newArrayListWithCapacity(stacks.size());
-		Iterator var4 = stacks.iterator();
 
-		while(var4.hasNext()) {
-			ItemStack itemStack = (ItemStack)var4.next();
-			Iterator var6 = players.iterator();
+		for (ItemStack itemStack : stacks) {
 
-			while(var6.hasNext()) {
-				ServerPlayerEntity serverPlayerEntity = (ServerPlayerEntity)var6.next();
+			for (ServerPlayerEntity serverPlayerEntity : players) {
 				if (serverPlayerEntity.getInventory().insertStack(itemStack.copy())) {
 					list.add(itemStack);
 				}
