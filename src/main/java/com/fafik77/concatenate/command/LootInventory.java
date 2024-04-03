@@ -23,6 +23,7 @@ import net.minecraft.command.argument.Vec3ArgumentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -255,6 +256,11 @@ public class LootInventory {
 			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			items.add( ((ItemEntity) target).getStack().copy() );
+		}
+		else if(target instanceof ItemFrameEntity){   //item frames
+			DefaultedList<ItemStack> items = DefaultedList.of();
+			list= items;
+			items.add( ((ItemFrameEntity) target).getHeldItemStack().copy() );
 		}
 		else if(target instanceof VehicleInventory){    //cart, boat with chest
 			VehicleInventory MooovingInv= (VehicleInventory)target;
