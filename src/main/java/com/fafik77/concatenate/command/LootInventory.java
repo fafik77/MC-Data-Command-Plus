@@ -39,13 +39,12 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 /** Data Command Plus includes:
  * Loot Inventory on 2024-03-17
+ * from net.minecraft.server.command.LootCommand
  */
 public class LootInventory {
 	static final Dynamic3CommandExceptionType NOT_A_CONTAINER_TARGET_EXCEPTION = new Dynamic3CommandExceptionType((x, y, z) -> {
@@ -56,7 +55,7 @@ public class LootInventory {
 	});
 
 	private static final DynamicCommandExceptionType NO_INVENTORY_EXCEPTION = new DynamicCommandExceptionType((entityName) -> {
-		return Text.stringifiedTranslatable("commands.loot.inventory.no_inventory", new Object[]{entityName});
+		return Text.stringifiedTranslatable("commands.loot.loot_inventory.no_inventory", new Object[]{entityName});
 	});
 
 	public LootInventory(){
@@ -176,7 +175,7 @@ public class LootInventory {
 	}
 
 	private static boolean itemsMatch(ItemStack first, ItemStack second) {
-		return first.getCount() <= first.getMaxCount() && ItemStack.canCombine(first, second);
+		return first.getCount() <= first.getMaxCount() && ItemStack.areItemsAndComponentsEqual(first, second);
 	}
 
 	private static int executeGive(Collection<ServerPlayerEntity> players, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
@@ -281,7 +280,7 @@ public class LootInventory {
 			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			((MerchantEntity) target).getInventory().getHeldStacks().forEach(itemStack -> items.add(itemStack.copy()));
-			target.getItemsEquipped().forEach(itemStack -> items.add(itemStack.copy()) );
+			((MerchantEntity) target).getEquippedItems().forEach(itemStack -> items.add(itemStack.copy()) );
 		}
 		else if(target instanceof AbstractHorseEntity) {    //horse, donkey, llama
 			DefaultedList<ItemStack> items = DefaultedList.of();
@@ -293,7 +292,7 @@ public class LootInventory {
 		else if(target instanceof LivingEntity) {   //any other living entity
 			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
-			target.getItemsEquipped().forEach(itemStack -> items.add(itemStack.copy()) );
+			((LivingEntity) target).getEquippedItems().forEach(itemStack -> items.add(itemStack.copy()) );
 		}
 
 		if( list==null || list.isEmpty()){

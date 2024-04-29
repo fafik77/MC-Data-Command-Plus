@@ -5,7 +5,7 @@ import com.mojang.datafixers.DataFixer;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtTagSizeTracker;
+import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.util.WorldSavePath;
 import net.minecraft.world.level.storage.LevelStorage;
 import org.jetbrains.annotations.Nullable;
@@ -28,7 +28,7 @@ public class PlayersStorage {
 	}
 
 	/** returns file name for player "_pds" Player Data Storage */
-	public static String getPlayerFilePds(String playerUuid){
+	public static String getPlayerFilePds(final String playerUuid){
 		return playerUuid + "_pds";
 	}
 
@@ -51,7 +51,7 @@ public class PlayersStorage {
 		try {
 			File file = new File(this.playerDataDir, PlayerFile + ".dat");
 			if (file.exists() && file.isFile()) {
-				nbtCompound = NbtIo.readCompressed(file.toPath(), NbtTagSizeTracker.ofUnlimitedBytes());
+				nbtCompound = NbtIo.readCompressed(file.toPath(), NbtSizeTracker.ofUnlimitedBytes());
 			}
 		} catch (Exception exception) {
 			singletons.data_LOGGER.warn("Failed to load player_pds data for {}", player.getName().getString());
