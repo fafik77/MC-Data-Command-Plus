@@ -1,4 +1,5 @@
-# Mc_Data_Concat-1.20
+# MC Data Command Plus
+for minecraft 1.20+
 
 This mod adds more functionality to /data command.
 <ul>
@@ -22,3 +23,6 @@ Concatenate:
 
 storageplayer:<br>
 stores each player data storage in "Word/playerdata/uuid_pds.dat"
+
+/loot ... inventory ... [MaxSlots] <br>
+drops the loot from source inventory into target inventory, limited with MaxSlots
