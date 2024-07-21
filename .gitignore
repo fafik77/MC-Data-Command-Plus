@@ -1,3 +1,5 @@
+.github/
+
 # gradle
 
 .gradle/
@@ -38,6 +40,3 @@ hs_err_*.log
 replay_*.log
 *.hprof
 *.jfr
-
-# junk
-/src/main/resources/assets/

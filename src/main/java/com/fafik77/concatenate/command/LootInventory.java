@@ -1,6 +1,7 @@
 package com.fafik77.concatenate.command;
 
 import com.fafik77.concatenate.mixin.AbstractHorseEntityMixin;
+import com.fafik77.concatenate.mixin.PlayerInventoryMixin;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -16,10 +17,7 @@ import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.command.CommandRegistryAccess;
-import net.minecraft.command.argument.BlockPosArgumentType;
-import net.minecraft.command.argument.EntityArgumentType;
-import net.minecraft.command.argument.ItemSlotArgumentType;
-import net.minecraft.command.argument.Vec3ArgumentType;
+import net.minecraft.command.argument.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
@@ -39,11 +37,13 @@ import net.minecraft.text.Text;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+
 import java.util.Collection;
 import java.util.List;
 
 /** Data Command Plus includes:
  * Loot Inventory on 2024-03-17
+ * update 2024-07-21
  * from net.minecraft.server.command.LootCommand
  */
 public class LootInventory {
@@ -66,8 +66,10 @@ public class LootInventory {
 			return source.hasPermissionLevel(2);
 		}), (builder, constructor) -> {
 			return builder.then(CommandManager.literal("inventory").then(CommandManager.argument("target", EntityArgumentType.entity()).executes((context) -> {
-				return executeLootInventory(context, EntityArgumentType.getEntity(context, "target"), constructor);
-			})));
+				return executeLootInventory(context, EntityArgumentType.getEntity(context, "target"), constructor, Integer.MAX_VALUE);
+			}).then(CommandManager.argument("MaxSlots", IntegerArgumentType.integer()).executes((context) -> {
+				return executeLootInventory(context, EntityArgumentType.getEntity(context, "target"), constructor, IntegerArgumentType.getInteger(context, "MaxSlots"));
+			}))));
 		}));
 	}
 
@@ -248,9 +250,17 @@ public class LootInventory {
 
 
 
-	private static int executeLootInventory(CommandContext<ServerCommandSource> context, Entity target, Target constructor) throws CommandSyntaxException {
+	private static int executeLootInventory(CommandContext<ServerCommandSource> context, Entity target, Target constructor, int MaxSlots) throws CommandSyntaxException {
 		ServerCommandSource serverCommandSource = (ServerCommandSource)context.getSource();
 		List<ItemStack> list = null;
+		if(MaxSlots == 0){ //no items to return
+			DefaultedList<ItemStack> items = DefaultedList.of();
+			list= items;
+			return constructor.accept(context, list, (stacks) -> {
+				sendDroppedFeedback(serverCommandSource, stacks);
+			});
+		}
+
 		if(target instanceof ItemEntity){   //item
 			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
@@ -272,9 +282,11 @@ public class LootInventory {
 			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			/* ups by mistake I discovered Shadow Item technology (that's why we use for each copy)*/
-			((PlayerEntity) target).getInventory().main.forEach(itemStack -> items.add(itemStack.copy()));
-			((PlayerEntity) target).getInventory().armor.forEach(itemStack -> items.add(itemStack.copy()));
-			((PlayerEntity) target).getInventory().offHand.forEach(itemStack -> items.add(itemStack.copy()));
+			PlayerInventoryMixin playersInv= (PlayerInventoryMixin)((PlayerEntity) target).getInventory();
+			playersInv.getCombinedInventory().forEach(EachList -> EachList.forEach(itemStack -> items.add(itemStack.copy()))); //i expect that
+//			((PlayerEntity) target).getInventory().main.forEach(itemStack -> items.add(itemStack.copy()));
+//			((PlayerEntity) target).getInventory().armor.forEach(itemStack -> items.add(itemStack.copy()));
+//			((PlayerEntity) target).getInventory().offHand.forEach(itemStack -> items.add(itemStack.copy()));
 		}
 		else if(target instanceof MerchantEntity) { //villagers
 			DefaultedList<ItemStack> items = DefaultedList.of();
@@ -297,6 +309,19 @@ public class LootInventory {
 
 		if( list==null || list.isEmpty()){
 			throw NO_INVENTORY_EXCEPTION.create(target.getName());
+		}
+
+		//update 2024-07-21, limits the amount of Slots returned, -1= no limit(default), 0= nothing, 1= 1st slot only(can return minecraft:air), <n>= all slots up to n with n counting from 1
+		if(MaxSlots > 0) {
+			while (list.size() > MaxSlots) {  //limit item drops (leave first n)
+				list.removeLast();
+			}
+		}
+		else if(MaxSlots < 0) {
+			MaxSlots= Math.abs(MaxSlots);
+			while (list.size() > MaxSlots) {  //limit item drops (leave last n)
+				list.removeFirst();
+			}
 		}
 
 		return constructor.accept(context, list, (stacks) -> {

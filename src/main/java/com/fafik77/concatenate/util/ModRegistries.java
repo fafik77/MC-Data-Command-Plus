@@ -12,7 +12,7 @@ public class ModRegistries {
 
 	/** Register Data commands+ */
     private static void registerCommands() {
-	    singletons.data_LOGGER.info("registering extended /Data command");
+	    singletons.data_LOGGER.info("registering mod /Data Command Plus @fafik77");
         CommandRegistrationCallback.EVENT.register(DataCmdp::register);
         CommandRegistrationCallback.EVENT.register(LootInventory::register);
     }

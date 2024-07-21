@@ -42,8 +42,7 @@ public class NbtToStr {
 				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);}; ++concatCount; concatOut.append(arr[i]);}
 				break;
 			}
-			case(NbtElement.LONG_ARRAY_TYPE):
-			{
+			case(NbtElement.LONG_ARRAY_TYPE): {
 				long[] arr = ((NbtLongArray) nbtElement).getLongArray();
 				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);}; ++concatCount; concatOut.append(arr[i]);}
 				break;
@@ -61,6 +60,7 @@ public class NbtToStr {
 				break;
 			}
 			default: {
+				//COMPOUND_TYPE --not included, as it would have to recurse everything to spit out gibberish
 				//unknown type = do nothing
 				break;
 			}

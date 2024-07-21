@@ -1,0 +1,7 @@
+{
+  "commands.data.playerstorage.get": "%s on %s after scale factor of %s is %s",
+  "commands.data.playerstorage.invalid": "Unable to access player storage of non player entity",
+  "commands.data.playerstorage.modified": "Modified player storage of %s",
+  "commands.data.playerstorage.query": "Player storage of %s has the following contents: %s",
+  "commands.loot.loot_inventory.no_inventory": "Entity %s doesn't have an inventory to loot"
+}

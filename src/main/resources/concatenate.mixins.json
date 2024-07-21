@@ -5,6 +5,7 @@
 	"mixins": [
       "MinecraftServerMixin",
       "PlayerManagerMixin",
+      "PlayerInventoryMixin",
       "DataCommandMixin",
       "AbstractHorseEntityMixin"
 	],
