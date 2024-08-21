@@ -7,7 +7,8 @@
       "PlayerManagerMixin",
       "PlayerInventoryMixin",
       "DataCommandMixin",
-      "AbstractHorseEntityMixin"
+      "AbstractHorseEntityMixin",
+      "ArgumentTypesMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1
