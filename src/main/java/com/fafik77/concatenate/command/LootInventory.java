@@ -84,12 +84,16 @@ public class LootInventory {
 			return executeBlock((ServerCommandSource)context.getSource(), BlockPosArgumentType.getLoadedBlockPos(context, "targetPos"), IntegerArgumentType.getInteger(context, "slot"), IntegerArgumentType.getInteger(context, "count"), stacks, messageSender);
 		})))))).then(CommandManager.literal("insert").then(sourceConstructor.construct(CommandManager.argument("targetPos", BlockPosArgumentType.blockPos()), (context, stacks, messageSender) -> {
 			return executeInsert((ServerCommandSource)context.getSource(), BlockPosArgumentType.getLoadedBlockPos(context, "targetPos"), stacks, messageSender);
-		}))).then(CommandManager.literal("give").then(sourceConstructor.construct(CommandManager.argument("players", EntityArgumentType.players()), (context, stacks, messageSender) -> {
+		}))).then(CommandManager.literal("insert").then(CommandManager.literal("entity").then(sourceConstructor.construct(CommandManager.argument("entity", EntityArgumentType.entity()), (context, stacks, messageSender) -> {
+			return executeInsertMc((ServerCommandSource)context.getSource(), EntityArgumentType.getEntity(context, "entity"), stacks, messageSender);
+		})))).then(CommandManager.literal("give").then(sourceConstructor.construct(CommandManager.argument("players", EntityArgumentType.players()), (context, stacks, messageSender) -> {
 			return executeGive(EntityArgumentType.getPlayers(context, "players"), stacks, messageSender);
 		}))).then(CommandManager.literal("spawn").then(sourceConstructor.construct(CommandManager.argument("targetPos", Vec3ArgumentType.vec3()), (context, stacks, messageSender) -> {
 			return executeSpawn((ServerCommandSource)context.getSource(), Vec3ArgumentType.getVec3(context, "targetPos"), stacks, messageSender);
 		})));
 	}
+
+
 
 	private static Inventory getBlockInventory(ServerCommandSource source, BlockPos pos) throws CommandSyntaxException {
 		BlockEntity blockEntity = source.getWorld().getBlockEntity(pos);
@@ -125,6 +129,33 @@ public class LootInventory {
 			}
 		}
 
+		messageSender.accept(list);
+		return list.size();
+	}
+	/** insert into mobile inventory (entity) on 2024-08-22*/
+	private static int executeInsertMc(ServerCommandSource source, Entity entity, List<ItemStack> stacks, FeedbackMessage messageSender) throws CommandSyntaxException {
+		List<ItemStack> list = Lists.newArrayListWithCapacity(stacks.size());
+		if(entity instanceof Inventory){    //cart, boat with chest
+			Inventory inventory = (Inventory)entity;
+			for (ItemStack itemStack : stacks) {
+				if (insert(inventory, itemStack.copy())) {
+					inventory.markDirty();
+					list.add(itemStack);
+				}
+			}
+		}
+		else if(entity instanceof AbstractHorseEntity){    //horse, lama, donkey
+			Inventory inventory = ((AbstractHorseEntityMixin) entity).getItems();
+			for (ItemStack itemStack : stacks) {
+				if (insert(inventory, itemStack.copy())) {
+					inventory.markDirty();
+					list.add(itemStack);
+				}
+			}
+		}
+		else {
+			throw NO_INVENTORY_EXCEPTION.create(entity.getName());
+		}
 		messageSender.accept(list);
 		return list.size();
 	}
