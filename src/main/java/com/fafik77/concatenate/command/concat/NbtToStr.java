@@ -1,7 +1,7 @@
 package com.fafik77.concatenate.command.concat;
 
+import com.fafik77.concatenate.util.StringUtils;
 import net.minecraft.nbt.*;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
 /** converts any element to json string representation */
@@ -39,17 +39,17 @@ public class NbtToStr {
 			}
 			case(NbtElement.BYTE_ARRAY_TYPE): {
 				byte[] arr = ((NbtByteArray) nbtElement).getByteArray();
-				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);}; ++concatCount; concatOut.append(arr[i]);}
+				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);} ++concatCount; concatOut.append(arr[i]);}
 				break;
 			}
 			case(NbtElement.INT_ARRAY_TYPE): {
 				int[] arr = ((NbtIntArray) nbtElement).getIntArray();
-				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);}; ++concatCount; concatOut.append(arr[i]);}
+				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);} ++concatCount; concatOut.append(arr[i]);}
 				break;
 			}
 			case(NbtElement.LONG_ARRAY_TYPE): {
 				long[] arr = ((NbtLongArray) nbtElement).getLongArray();
-				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);}; ++concatCount; concatOut.append(arr[i]);}
+				for(int i=0; i!=arr.length; ++i){if(concatCount!=0){concatOut.append(separator);} ++concatCount; concatOut.append(arr[i]);}
 				break;
 			}
 			//simple single data
@@ -59,28 +59,31 @@ public class NbtToStr {
 			case(NbtElement.LONG_TYPE):
 			case(NbtElement.DOUBLE_TYPE):
 			case(NbtElement.FLOAT_TYPE): {
-				if(noRecurse==false && concatCount!=0){concatOut.append(separator);} ++concatCount;
+				if(!noRecurse && concatCount!=0){concatOut.append(separator);} ++concatCount;
 				concatOut.append(nbtElement.asString());
 				break;
 			}
 			case(NbtElement.STRING_TYPE): {
-				if(noRecurse==false){
+				if(!noRecurse){
 					if(concatCount!=0){concatOut.append(separator);} ++concatCount;
 					concatOut.append(nbtElement.asString());
 				}
 				else {
-					concatOut.append( "\""+ StringEscapeUtils.escapeJava(nbtElement.asString())+ "\"" );
+					concatOut.append( "\""+ StringUtils.escapeQuote(nbtElement.asString())+ "\"" );
 				}
 				break;
 			}
+			// 2024-09-25 added handing for compounds
 			case(NbtElement.COMPOUND_TYPE): {
 				if(noRecurse) break; //already recursed
 				//object can store many different things, recurse through its content
 				final NbtCompound ElementAsObj = (NbtCompound)nbtElement;
 				for (String key : ElementAsObj.getKeys()) {
+					NbtElement val1 = ElementAsObj.get(key);
+					if(val1==null) continue;
 					if(concatCount!=0){concatOut.append(separator);} ++concatCount;
-					concatOut.append( "\""+ StringEscapeUtils.escapeJava(key)+ "\":" );
-					concat( ElementAsObj.get(key), true);
+					concatOut.append( "\""+ StringUtils.escapeQuote(key)+ "\":" );
+					concat( val1,true);
 				}
 				break;
 			}
