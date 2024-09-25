@@ -196,14 +196,19 @@ public class DataCmdp {
 
 	/** Data Math (handled here) 2024-08-21*/
 	private static int executeDataMath(CommandContext<ServerCommandSource> context, DataCommandObject object, NbtPathArgumentType.NbtPath path, String operation, double value) throws CommandSyntaxException {
-		Collection<NbtElement> collection = path.get(object.getNbt());
+		DataCommandObject dataCommandObject = object;
+		NbtCompound nbtCompound = dataCommandObject.getNbt();
+
+		Collection<NbtElement> collection = path.get(nbtCompound);
 
 		Iterator<NbtElement> iterator = collection.iterator();
 		int resultCount = collection.size();
 		if(0==resultCount) throw GET_UNKNOWN_EXCEPTION.create(path.toString());
 		if(resultCount>1) throw GET_MULTIPLE_EXCEPTION.create();
 
-	//	List<NbtElement> list = Collections.emptyList();
+
+
+		//	List<NbtElement> list = Collections.emptyList();
 
 		while(iterator.hasNext()) { //ready for Multiple, but there is no easy way to sync it back
 			NbtElement nbtElement = (NbtElement) iterator.next();
@@ -220,7 +225,13 @@ public class DataCmdp {
 						throw GET_INVALID_EXCEPTION.create(path.toString());
 				};
 		//		list.addLast(nbtElementOut);
-				path.put(object.getNbt(), nbtElementOut);
+				path.put(nbtCompound, nbtElementOut);
+
+				dataCommandObject.setNbt(nbtCompound);
+				context.getSource().sendFeedback(() -> dataCommandObject.feedbackModify(), false);
+			}
+			else {  //NaN
+				throw GET_INVALID_EXCEPTION.create(path.toString());
 			}
 		}
 		return resultCount;

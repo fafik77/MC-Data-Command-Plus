@@ -1,6 +1,7 @@
 package com.fafik77.concatenate.command.concat;
 
 import net.minecraft.nbt.*;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 
 /** converts any element to json string representation */
@@ -21,14 +22,18 @@ public class NbtToStr {
 		concatOut.append(str);
 	}
 	public void concat(final @NotNull NbtElement nbtElement) {
+		concat(nbtElement, false);
+	}
+	public void concat(final @NotNull NbtElement nbtElement, final boolean noRecurse) {
 		byte NT = nbtElement.getType();
 		switch (NT){
 			//Lists: 1 general && 3 specified
 			case(NbtElement.LIST_TYPE): {
+				if(noRecurse) break; //already recursed
 				//List can store many different things, recurse through its content
 				final NbtList ElementAsList = (NbtList)nbtElement;
 				for(int i=0; i!= ElementAsList.size(); ++i ){
-					concat( ElementAsList.get(i) );
+					concat( ElementAsList.get(i), true);
 				}
 				break;
 			}
@@ -53,10 +58,30 @@ public class NbtToStr {
 			case(NbtElement.INT_TYPE):
 			case(NbtElement.LONG_TYPE):
 			case(NbtElement.DOUBLE_TYPE):
-			case(NbtElement.FLOAT_TYPE):
-			case(NbtElement.STRING_TYPE): {
-				if(concatCount!=0){concatOut.append(separator);} ++concatCount;
+			case(NbtElement.FLOAT_TYPE): {
+				if(noRecurse==false && concatCount!=0){concatOut.append(separator);} ++concatCount;
 				concatOut.append(nbtElement.asString());
+				break;
+			}
+			case(NbtElement.STRING_TYPE): {
+				if(noRecurse==false){
+					if(concatCount!=0){concatOut.append(separator);} ++concatCount;
+					concatOut.append(nbtElement.asString());
+				}
+				else {
+					concatOut.append( "\""+ StringEscapeUtils.escapeJava(nbtElement.asString())+ "\"" );
+				}
+				break;
+			}
+			case(NbtElement.COMPOUND_TYPE): {
+				if(noRecurse) break; //already recursed
+				//object can store many different things, recurse through its content
+				final NbtCompound ElementAsObj = (NbtCompound)nbtElement;
+				for (String key : ElementAsObj.getKeys()) {
+					if(concatCount!=0){concatOut.append(separator);} ++concatCount;
+					concatOut.append( "\""+ StringEscapeUtils.escapeJava(key)+ "\":" );
+					concat( ElementAsObj.get(key), true);
+				}
 				break;
 			}
 			default: {
