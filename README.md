@@ -6,7 +6,7 @@ This mod adds more functionality to /data command.
 <li>lets you concatenate strings</li>
 <li>lets you access player data storage (pds)</li>
 </ul>
-Get it on https://legacy.curseforge.com/minecraft/mc-mods/data-concat-string
+Get it on https://modrinth.com/mod/data-command-plus
 </br>
 
 Syntax of the command fits right into Vanilla syntax. see https://minecraft.wiki/w/Commands/data on Minecraft Wiki
