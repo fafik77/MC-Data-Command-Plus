@@ -1,6 +1,7 @@
 package com.fafik77.concatenate.util;
 
 import com.fafik77.concatenate.command.DataCmdp;
+import com.fafik77.concatenate.command.DeleteKillEntity;
 import com.fafik77.concatenate.command.LootInventory;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
@@ -15,6 +16,7 @@ public class ModRegistries {
 	    singletons.data_LOGGER.info("registering mod /Data Command Plus @fafik77");
         CommandRegistrationCallback.EVENT.register(DataCmdp::register);
         CommandRegistrationCallback.EVENT.register(LootInventory::register);
+        CommandRegistrationCallback.EVENT.register(DeleteKillEntity::register);
     }
 
 }

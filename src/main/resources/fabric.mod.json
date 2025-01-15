@@ -8,8 +8,8 @@
 		"fafik77"
 	],
 	"contact": {
-		"homepage": "https://legacy.curseforge.com/minecraft/mc-mods/data-concat-string",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://modrinth.com/mod/data-command-plus",
+		"sources": "https://github.com/fafik77/MC-Data-Command-Plus"
 	},
 	"license": "MIT",
 	"icon": "assets/concatenate/concatenate.png",
