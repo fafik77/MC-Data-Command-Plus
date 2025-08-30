@@ -60,16 +60,16 @@ public class NbtToStr {
 			case(NbtElement.DOUBLE_TYPE):
 			case(NbtElement.FLOAT_TYPE): {
 				if(!noRecurse && concatCount!=0){concatOut.append(separator);} ++concatCount;
-				concatOut.append(nbtElement.asString());
+				concatOut.append(nbtElement.toString());
 				break;
 			}
 			case(NbtElement.STRING_TYPE): {
 				if(!noRecurse){
 					if(concatCount!=0){concatOut.append(separator);} ++concatCount;
-					concatOut.append(nbtElement.asString());
+					concatOut.append(((NbtString) nbtElement).value());
 				}
 				else {
-					concatOut.append( "\""+ StringUtils.escapeQuote(nbtElement.asString())+ "\"" );
+					concatOut.append( "\""+ StringUtils.escapeQuote(((NbtString) nbtElement).value())+ "\"" );
 				}
 				break;
 			}

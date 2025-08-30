@@ -1,7 +1,6 @@
 package com.fafik77.concatenate.command;
 
 import com.fafik77.concatenate.mixin.AbstractHorseEntityMixin;
-import com.fafik77.concatenate.mixin.PlayerInventoryMixin;
 import com.google.common.collect.Lists;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
@@ -19,12 +18,14 @@ import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.command.CommandRegistryAccess;
 import net.minecraft.command.argument.*;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractHorseEntity;
 import net.minecraft.entity.passive.MerchantEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.entity.vehicle.VehicleInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.StackReference;
@@ -283,9 +284,9 @@ public class LootInventory {
 
 	private static int executeLootInventory(CommandContext<ServerCommandSource> context, Entity target, Target constructor, int MaxSlots) throws CommandSyntaxException {
 		ServerCommandSource serverCommandSource = (ServerCommandSource)context.getSource();
+		DefaultedList<ItemStack> items = DefaultedList.of();
 		List<ItemStack> list = null;
 		if(MaxSlots == 0){ //no items to return
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			return constructor.accept(context, list, (stacks) -> {
 				sendDroppedFeedback(serverCommandSource, stacks);
@@ -293,49 +294,40 @@ public class LootInventory {
 		}
 
 		if(target instanceof ItemEntity){   //item
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			items.add( ((ItemEntity) target).getStack().copy() );
 		}
 		else if(target instanceof ItemFrameEntity){   //item frames
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			items.add( ((ItemFrameEntity) target).getHeldItemStack().copy() );
 		}
 		else if(target instanceof VehicleInventory){    //cart, boat with chest
 			VehicleInventory MooovingInv= (VehicleInventory)target;
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			MooovingInv.getInventory().forEach(itemStack -> items.add(itemStack.copy()));
-
 		}
 		else if(target instanceof PlayerEntity) {   //player
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
+			PlayerInventory playerInventory = ((PlayerEntity) target).getInventory();
+			for(int i=0; i < playerInventory.size(); ++i){
+				items.add(playerInventory.getStack(i).copy());
+			}
 			/* ups by mistake I discovered Shadow Item technology (that's why we use for each copy)*/
-			PlayerInventoryMixin playersInv= (PlayerInventoryMixin)((PlayerEntity) target).getInventory();
-			playersInv.getCombinedInventory().forEach(EachList -> EachList.forEach(itemStack -> items.add(itemStack.copy()))); //i expect that
-//			((PlayerEntity) target).getInventory().main.forEach(itemStack -> items.add(itemStack.copy()));
-//			((PlayerEntity) target).getInventory().armor.forEach(itemStack -> items.add(itemStack.copy()));
-//			((PlayerEntity) target).getInventory().offHand.forEach(itemStack -> items.add(itemStack.copy()));
 		}
 		else if(target instanceof MerchantEntity) { //villagers
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			((MerchantEntity) target).getInventory().getHeldStacks().forEach(itemStack -> items.add(itemStack.copy()));
-			((MerchantEntity) target).getEquippedItems().forEach(itemStack -> items.add(itemStack.copy()) );
+			GetEntityEquipment((LivingEntity) target).forEach(itemStack -> items.add(itemStack.copy()));
 		}
 		else if(target instanceof AbstractHorseEntity) {    //horse, donkey, llama
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
 			((AbstractHorseEntityMixin) target).getItems().getHeldStacks().forEach(itemStack -> items.add(itemStack.copy()));
 		}
 
 
 		else if(target instanceof LivingEntity) {   //any other living entity
-			DefaultedList<ItemStack> items = DefaultedList.of();
 			list= items;
-			((LivingEntity) target).getEquippedItems().forEach(itemStack -> items.add(itemStack.copy()) );
+			GetEntityEquipment((LivingEntity) target).forEach(itemStack -> items.add(itemStack.copy()));
 		}
 
 		if( list==null || list.isEmpty()){
@@ -359,6 +351,21 @@ public class LootInventory {
 			sendDroppedFeedback(serverCommandSource, stacks);
 		});
 
+	}
+
+	/** Equipment in order: Armor feet to head, mainhand, offhand, body, saddle.
+	 * 2025-08-30 added Equipment handling since 1.21.5*/
+	private static List<ItemStack> GetEntityEquipment(LivingEntity target) {
+		DefaultedList<ItemStack> itemsEquipped = DefaultedList.of();
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.FEET));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.LEGS));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.CHEST));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.HEAD));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.MAINHAND));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.OFFHAND));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.BODY));
+		itemsEquipped.add(target.getEquippedStack(EquipmentSlot.SADDLE));
+		return itemsEquipped;
 	}
 
 	@FunctionalInterface
