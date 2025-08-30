@@ -1,4 +1,5 @@
 .github/
+*.lnk
 
 # gradle
 

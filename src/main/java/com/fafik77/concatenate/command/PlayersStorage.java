@@ -57,7 +57,7 @@ public class PlayersStorage {
 			singletons.data_LOGGER.warn("Failed to load player_pds data for {}", player.getName().getString());
 		}
 		if (nbtCompound != null) {
-			playersStorageMgr.loadPlayerData(player.getUuid(),nbtCompound.getCompound("data"));
+			playersStorageMgr.loadPlayerData(player.getUuid(),nbtCompound.getCompound("data").get());
 		}
 	}
 	public void removePlayerFromList(PlayerEntity player) {
